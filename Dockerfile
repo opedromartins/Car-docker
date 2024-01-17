@@ -32,7 +32,13 @@ RUN sed -i 's/can::ThreadedSocketCANInterfaceSharedPtr/std::shared_ptr<can::Thre
 # Remove the TwizyModel-Noetic unnecessary packages
 RUN rm -rf /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_description \
            /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_docs \
-           /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_robot
+           /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_robot`
+
+WORKDIR /root/catkin_ws/src
+RUN catkin_create_pkg steering_control std_msgs rospy roscpp geometry_msgs
+
+# Copy turn_left_node.cpp to src folder
+COPY turn_left_node.cpp /root/catkin_ws/src/steering_control/src
 
 
 # Build the Catkin workspace
@@ -44,7 +50,8 @@ RUN catkin build
 RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
     echo "source /root/catkin_ws/devel/setup.bash" >> /root/.bashrc && \
     echo "alias vi_launch='roslaunch sd_vehicle_interface sd_vehicle_interface.launch'" >> /root/.bashrc && \
-    echo "alias control='rosrun sd_control sd_teleop_keyboard.py'" >> /root/.bashrc
+    echo "alias control='rosrun sd_control sd_teleop_keyboard.py'" >> /root/.bashrc \
+    echo "alias left='rosrun steering_control turn_left_node'" >> /root/.bashrc
 
 # Change the default vehicle to twizy
 RUN sed -i 's#default="env200"#default="twizy"#' /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/launch/sd_vehicle_interface.launch && \

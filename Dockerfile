@@ -31,7 +31,7 @@ RUN sed -i 's/can::ThreadedSocketCANInterfaceSharedPtr/std::shared_ptr<can::Thre
 
 # Remove the TwizyModel-Noetic unnecessary packages
 RUN rm -rf /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_description \
-           /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_docs/imgs \
+           /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_docs \
            /root/catkin_ws/src/TwizyModel-Noetic/streetdrone_model/sd_robot
 
 
@@ -48,7 +48,7 @@ RUN echo "source /opt/ros/noetic/setup.bash" >> /root/.bashrc && \
 
 # Change the default vehicle to twizy
 RUN sed -i 's#default="env200"#default="twizy"#' /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/launch/sd_vehicle_interface.launch && \
-    sed -i 's#<node pkg="sd_vehicle_interface" type="socketcan_bridge_node" name="socketcan_bridge_node" output = "screen"/>#<node pkg="sd_vehicle_interface" type="socketcan_bridge_node" name="socketcan_bridge_node" output = "screen"><param name="can_device" value="can0"></node>#' \
+    sed -i 's#<node pkg="sd_vehicle_interface" type="socketcan_bridge_node" name="socketcan_bridge_node" output = "screen"/>#<node pkg="sd_vehicle_interface" type="socketcan_bridge_node" name="socketcan_bridge_node" output = "screen"><param name="can_device" value="can0" /></node>#' \
     /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/launch/sd_vehicle_interface.launch
 
 # Set the working directory to the root folder

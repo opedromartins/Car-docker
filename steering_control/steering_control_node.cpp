@@ -15,7 +15,7 @@ int main(int argc, char** argv)
         geometry_msgs::TwistStamped twist_cmd_msg;
         
         // Set a small negative angular velocity to turn left slowly
-        twist_cmd_msg.twist.angular.z = -0.5;  // You can adjust this value to control the turning speed
+        twist_cmd_msg.twist.angular.z = 1.0;  // You can adjust this value to control the turning speed
 
         // Set linear velocity to zero (assuming only steering control)
         twist_cmd_msg.twist.linear.x = 0.0;

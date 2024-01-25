@@ -1,5 +1,5 @@
 # Use the official ROS Noetic image as the base image
-FROM osrf/ros:noetic-desktop-full
+FROM osrf/ros:melodic-desktop-full
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
@@ -21,26 +21,16 @@ WORKDIR /root/catkin_ws
 RUN catkin init
 
 # Clone the SD-VehicleInterface repository
-RUN git clone --single-branch -b melodic-devel https://github.com/streetdrone-home/SD-VehicleInterface.git /root/catkin_ws/src/SD-VehicleInterface
+RUN git clone https://github.com/opedromartins/SD-VehicleInterface.git /root/catkin_ws/src/SD-VehicleInterface
 
 # Replace the ThreadedSocketCANInterfaceSharedPtr with the correct type for noetic
-RUN sed -i 's/can::ThreadedSocketCANInterfaceSharedPtr/std::shared_ptr<can::ThreadedInterface<can::SocketCANInterface>>/' /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src/socketcan_bridge/socketcan_bridge_node.cpp
+#RUN sed -i 's/can::ThreadedSocketCANInterfaceSharedPtr/std::shared_ptr<can::ThreadedInterface<can::SocketCANInterface>>/' /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src/socketcan_bridge/socketcan_bridge_node.cpp
 
 WORKDIR /root/catkin_ws/src
 RUN catkin_create_pkg steering_control std_msgs rospy roscpp geometry_msgs
 # Copy steering_control_node.cpp to src folder
 COPY steering_control/steering_control_node.cpp /root/catkin_ws/src/steering_control/src
 COPY steering_control/CMakeLists.txt /root/catkin_ws/src/steering_control
-
-# Remove the SD-VehicleInterface files that will be replaced
-RUN rm -rf /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/launch/sd_vehicle_interface.launch \
-           /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src/sd_control.cpp \
-           /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src/sd_gps_imu.cpp
-
-# Copy the SD-VehicleInterface files to the correct folders
-COPY vehicle_interface/sd_vehicle_interface.launch /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/launch
-COPY vehicle_interface/sd_control.cpp /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src
-COPY vehicle_interface/sd_gps_imu.cpp /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src
 
 # Build the Catkin workspace
 RUN catkin config --extend /opt/ros/noetic

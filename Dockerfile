@@ -1,47 +1,35 @@
-# Use the official ROS Melodic image as the base image
-FROM osrf/ros:melodic-desktop-full
+# Use the official ROS Humble image as the base image
+FROM osrf/ros:humble-desktop-full
 
 # Install required packages
 RUN apt-get update && apt-get install -y \
     wget \
     git \
     nano \
-    python3-catkin-tools \
-    ros-melodic-socketcan-interface \
-    ros-melodic-can-msgs \
-    ros-melodic-teleop-twist-keyboard \
-    python3-catkin-tools \
+    ros-humble-can-msgs \
+    ros-humble-teleop-twist-keyboard \
     can-utils \
     iproute2 && \
     rm -rf /var/lib/apt/lists/*
 
-# Create a Catkin workspace and set it up
-RUN mkdir -p /root/catkin_ws/src
-WORKDIR /root/catkin_ws
-RUN catkin init
+# Create a Colcon workspace and set it up
+RUN mkdir -p /root/ros2_ws/src
+WORKDIR /root/ros2_ws/src
 
-# Clone the SD-VehicleInterface repository
-RUN git clone https://github.com/opedromartins/SD-VehicleInterface.git /root/catkin_ws/src/SD-VehicleInterface
+# Clone the SD-VehicleInterface Monash repository and the ros2_socketcan repository
+RUN git clone https://github.com/Monash-Connected-Autonomous-Vehicle/SD-VehicleInterface.git && \
+    git clone https://github.com/autowarefoundation/ros2_socketcan.git
 
-# Replace the ThreadedSocketCANInterfaceSharedPtr with the correct type for melodic
-#RUN sed -i 's/can::ThreadedSocketCANInterfaceSharedPtr/std::shared_ptr<can::ThreadedInterface<can::SocketCANInterface>>/' /root/catkin_ws/src/SD-VehicleInterface/vehicle_interface/src/socketcan_bridge/socketcan_bridge_node.cpp
+WORKDIR /root/ros2_ws
 
-WORKDIR /root/catkin_ws/src
-RUN catkin_create_pkg steering_control std_msgs rospy roscpp geometry_msgs
-# Copy steering_control_node.cpp to src folder
-COPY steering_control/steering_control_node.cpp /root/catkin_ws/src/steering_control/src
-COPY steering_control/CMakeLists.txt /root/catkin_ws/src/steering_control
+# Build the Colcon workspace
+RUN /bin/bash -c "source /opt/ros/humble/setup.bash; colcon build"
 
-# Build the Catkin workspace
-RUN catkin config --extend /opt/ros/melodic
-RUN catkin build
-
-# Source the ROS environment and the Catkin workspace in the entry point
+# Source the ROS environment and the Colcon workspace in the entry point
 # and create an alias for the keyboardlaunch script and the vehicle_interface launch file
-RUN echo "source /opt/ros/melodic/setup.bash" >> /root/.bashrc && \
-    echo "source /root/catkin_ws/devel/setup.bash" >> /root/.bashrc && \
-    echo "alias vi_launch='roslaunch sd_vehicle_interface sd_vehicle_interface.launch'" >> /root/.bashrc && \
-    echo "alias turn='rosrun steering_control steering_control_node'" >> /root/.bashrc
+RUN echo "source /opt/ros/humble/setup.bash" >> /root/.bashrc && \
+    echo "source /root/ros2_ws/install/setup.bash" >> /root/.bashrc && \
+    echo "alias vi_launch='ros2 launch sd_vehicle_interface sd_vehicle_interface.launch.xml sd_vehicle:=twizy sd_gps_imu:=peak'" >> /root/.bashrc
 
 # Set the working directory to the root folder
 WORKDIR /root
